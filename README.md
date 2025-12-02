@@ -3,6 +3,22 @@
 
 ---
 
+## Overview
+
+This guide installs a complete molecular docking environment including:
+- AutoDock Vina (molecular docking)
+- PyMOL (visualization)
+- Meeko (ligand preparation)
+- RDKit (cheminformatics)
+- MGLTools (optional, for AutoDockTools/ADT)
+
+**Important Notes:**
+- Primary environment uses Python 3.11 with modern, stable tools
+- MGLTools installation is optional but may be unstable on Apple Silicon
+- All tools tested and verified on M3/M4 Apple Silicon Macs
+
+---
+
 ## Prerequisites Check
 
 ### Step 1: Verify System Requirements
@@ -112,9 +128,75 @@ python -c "import rdkit; print('RDKit version:', rdkit.__version__)"
 
 ---
 
-## Verification Tests
+## Optional: Installing MGLTools (with Known Issues)
 
-### Step 7: Test AutoDock Vina
+### Step 7: Install MGLTools via Conda (x86_64 Emulation)
+
+**⚠️ WARNING:** MGLTools is based on Python 2.7 and may be unstable on Apple Silicon. AutoDockTools (ADT) has been known to crash. Use at your own risk.
+
+```bash
+# Create x86_64 environment (runs under Rosetta 2)
+CONDA_SUBDIR=osx-64 conda create -n mgltools python=2.7 -y
+
+# Activate the environment
+conda activate mgltools
+
+# Verify Python version
+python --version
+```
+
+**Expected Output:** `Python 2.7.18`
+
+```bash
+# Install MGLTools from bioconda (x86_64)
+CONDA_SUBDIR=osx-64 conda install -c bioconda mgltools -y
+
+# Verify installation
+which adt
+which pmv
+```
+
+**Expected Output:** Paths to adt and pmv executables
+
+### Step 8: Test MGLTools (May Crash)
+
+```bash
+conda activate mgltools
+
+# Test ADT (AutoDockTools) - may crash or require XQuartz
+adt &
+```
+
+**Known Issues:**
+- ADT may crash immediately or after opening
+- May cause XQuartz to enter a crash/restart loop
+- Requires XQuartz/X11 installation on macOS
+- Not optimized for Apple Silicon
+
+**If XQuartz is needed:**
+1. Download from: https://github.com/XQuartz/XQuartz/releases/latest
+2. Install the .dmg file
+3. Log out and log back in (required for XQuartz)
+
+**If MGLTools crashes:**
+```bash
+# Kill any stuck processes
+pkill -9 -i xquartz
+pkill -9 -i adt
+pkill -9 python
+
+# Switch back to the stable autodock environment
+conda deactivate
+conda activate autodock
+```
+
+**Recommendation:** Use the main `autodock` environment with Meeko for ligand preparation instead of MGLTools/ADT.
+
+---
+
+## Verification Tests (Main Environment)
+
+### Step 9: Test AutoDock Vina
 ```bash
 conda activate autodock
 
@@ -129,7 +211,7 @@ vina --help
 
 ---
 
-### Step 8: Test PyMOL Python API
+### Step 10: Test PyMOL Python API
 ```bash
 conda activate autodock
 
@@ -155,7 +237,7 @@ PyMOL API test PASSED
 
 ---
 
-### Step 9: Test RDKit Functionality
+### Step 11: Test RDKit Functionality
 ```bash
 conda activate autodock
 
@@ -184,7 +266,7 @@ RDKit test PASSED
 
 ---
 
-### Step 10: Test Meeko
+### Step 12: Test Meeko
 ```bash
 conda activate autodock
 
@@ -203,7 +285,7 @@ Meeko test PASSED
 
 ---
 
-### Step 11: Test Scientific Libraries
+### Step 13: Test Scientific Libraries
 ```bash
 conda activate autodock
 
@@ -234,7 +316,7 @@ Scientific libraries test PASSED
 
 ---
 
-### Step 12: Launch PyMOL GUI
+### Step 14: Launch PyMOL GUI
 ```bash
 conda activate autodock
 
@@ -250,7 +332,7 @@ pymol &
 
 ## Comprehensive Verification
 
-### Step 13: Run Complete Integration Test
+### Step 15: Run Complete Integration Test
 ```bash
 conda activate autodock
 
@@ -391,6 +473,34 @@ Environment is ready for:
 
 ## Troubleshooting
 
+### Issue: MGLTools/ADT crashes
+**Solution:**
+```bash
+# Kill stuck processes
+pkill -9 -i xquartz
+pkill -9 -i adt
+pkill -9 python
+
+# Remove the problematic environment if needed
+conda deactivate
+conda env remove -n mgltools
+
+# Use the stable autodock environment instead
+conda activate autodock
+```
+
+### Issue: XQuartz stuck in restart loop
+**Solution:**
+```bash
+# Force kill XQuartz
+pkill -9 XQuartz
+killall -9 X11
+
+# Don't restart MGLTools - use autodock environment instead
+conda activate autodock
+pymol  # Use PyMOL instead
+```
+
 ### Issue: Conda not found
 **Solution:** Install Miniforge as shown in Step 1
 
@@ -439,6 +549,21 @@ conda install -c conda-forge --force-reinstall <package_name> -y
 
 ## Quick Reference
 
+### Environment Management
+```bash
+# Main stable environment (recommended)
+conda activate autodock
+pymol                  # Launch PyMOL
+vina --help           # Run AutoDock Vina
+conda deactivate
+
+# MGLTools environment (unstable, optional)
+conda activate mgltools
+adt                   # Launch AutoDockTools (may crash)
+pmv                   # Launch Python Molecule Viewer
+conda deactivate
+```
+
 ### Daily Usage Commands
 ```bash
 # Activate environment
@@ -462,28 +587,64 @@ conda deactivate
 
 ### Check Installed Versions
 ```bash
+# Main environment
 conda activate autodock
 conda list | grep -E "vina|pymol|meeko|rdkit|numpy|pandas|scipy"
+
+# MGLTools environment (if installed)
+conda activate mgltools
+conda list | grep mgltools
 ```
 
 ---
 
 ## Installation Summary
 
-**Total Time:** ~15-20 minutes (depending on internet speed)
+**Total Time:** ~20-30 minutes (depending on internet speed)
 
-**Disk Space Required:** ~2-3 GB
+**Disk Space Required:** ~3-4 GB (including MGLTools if installed)
 
 **Components Installed:**
-1. Conda environment: `autodock`
-2. Python 3.11.x
-3. AutoDock Vina 1.2.5+
-4. PyMOL 3.1.0+
-5. Meeko 0.6.0+
-6. RDKit 2025.03.x+
-7. NumPy, Pandas, SciPy, Matplotlib (latest versions)
 
-**Architecture:** Native ARM64 (optimized for Apple Silicon M4)
+**Main Environment (`autodock`):**
+1. Python 3.11.x
+2. AutoDock Vina 1.2.5+
+3. PyMOL 3.1.0+
+4. Meeko 0.6.0+
+5. RDKit 2025.03.x+
+6. NumPy, Pandas, SciPy, Matplotlib (latest versions)
+7. Architecture: Native ARM64 (optimized for Apple Silicon)
+
+**Optional MGLTools Environment (`mgltools`):**
+1. Python 2.7.18
+2. MGLTools 1.5.7
+3. AutoDockTools (ADT)
+4. Python Molecule Viewer (PMV)
+5. Architecture: x86_64 (runs under Rosetta 2 emulation)
+6. **Status:** Unstable, may crash, requires XQuartz
+
+---
+
+## What We Learned During Installation
+
+### Initial Approach (Failed)
+1. Tried manual MGLTools installation from tar.gz
+   - Result: Required XQuartz, caused crashes
+2. Attempted to run ADT from manual installation
+   - Result: XQuartz entered crash/restart loop
+
+### Successful Approach
+1. Created modern environment with native ARM64 tools
+2. Installed MGLTools separately in x86_64 environment via conda
+3. MGLTools installation completed but ADT still crashes
+4. **Recommended:** Use main `autodock` environment for stable workflow
+
+### Key Insights
+- MGLTools (Python 2.7, from 2012) is not compatible with modern macOS
+- Native ARM64 tools (Vina, PyMOL, Meeko) work flawlessly
+- Conda's x86_64 emulation allows MGLTools to install but not run reliably
+- XQuartz dependency causes major stability issues
+- Meeko provides modern alternative to AutoDockTools for ligand prep
 
 ---
 
@@ -491,6 +652,7 @@ conda list | grep -E "vina|pymol|meeko|rdkit|numpy|pandas|scipy"
 
 Execute this final check to confirm everything is ready:
 
+**Main Environment (Required):**
 - [ ] `conda activate autodock` works without errors
 - [ ] `vina --version` shows version information
 - [ ] `pymol -c -e -Q` runs without errors
@@ -498,9 +660,16 @@ Execute this final check to confirm everything is ready:
 - [ ] `python -c "import meeko; print('OK')"` prints OK
 - [ ] `python -c "import numpy, pandas, scipy; print('OK')"` prints OK
 - [ ] `pymol` launches GUI successfully (window appears)
-- [ ] All verification tests in Step 13 pass
+- [ ] All verification tests in Step 15 pass
 
-**If all items are checked:** Installation is complete and verified! ✓
+**MGLTools Environment (Optional, May Not Work):**
+- [ ] `conda activate mgltools` works without errors
+- [ ] `which adt` and `which pmv` show valid paths
+- [ ] Note: ADT may crash - this is expected
+
+**If main environment items are checked:** Installation is complete and verified! ✓
+
+**If MGLTools crashes:** This is normal. Use the `autodock` environment instead.
 
 ---
 
