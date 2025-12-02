@@ -389,38 +389,6 @@ Environment is ready for:
 
 ---
 
-## Important: Why NOT to Use MGLTools
-
-### MGLTools Issues on Apple Silicon
-
-**DO NOT attempt to install MGLTools 1.5.7** - it has critical compatibility issues:
-
-❌ **Problems with MGLTools:**
-- Based on Python 2.7 (deprecated since 2020)
-- Requires XQuartz/X11 (causes crashes and restart loops)
-- AutoDockTools (ADT) crashes frequently on Apple Silicon
-- Built in 2012, not compatible with modern macOS
-- Running under Rosetta 2 causes instability
-- X11 dependency creates GUI loop crashes
-
-**What we tried:**
-1. Manual installation from tar.gz - ❌ Crashes
-2. Conda installation with x86_64 emulation - ❌ Still crashes
-3. Both caused XQuartz to loop (start → crash → restart)
-
-**The Modern Alternative (What This Guide Installs):**
-- ✅ AutoDock Vina 1.2.5+ (native ARM64)
-- ✅ PyMOL 3.1.0+ (native ARM64, stable GUI)
-- ✅ Meeko for ligand preparation
-- ✅ RDKit for cheminformatics
-- ✅ Python 3.11 (fully supported)
-- ✅ No X11/XQuartz dependency
-- ✅ No crashes, no compatibility issues
-
-**Bottom Line:** Use the tools in this guide instead of MGLTools. They provide the same functionality with modern, stable implementations.
-
----
-
 ## Troubleshooting
 
 ### Issue: Conda not found
@@ -440,23 +408,10 @@ conda install -c conda-forge <package_name> -y
 ### Issue: PyMOL crashes or won't open GUI
 **Solution:**
 ```bash
-# Ensure XQuartz is NOT running (it can cause conflicts)
-pkill -9 XQuartz
-
-# Try launching PyMOL again
+# Try relaunching PyMOL
 conda activate autodock
 pymol
 ```
-
-**Note:** If you previously attempted to install MGLTools, XQuartz may be installed and causing issues. This modern setup does NOT require XQuartz.
-
-### Issue: Someone told you to install MGLTools
-**Solution:** Don't. MGLTools is outdated (2012) and crashes on Apple Silicon. Use this guide's modern alternatives instead:
-- For docking: AutoDock Vina (in this guide)
-- For visualization: PyMOL (in this guide)
-- For ligand prep: Meeko (in this guide)
-
-These tools are actively maintained, ARM64-native, and much more stable.
 
 ### Issue: Environment activation not working
 **Solution:**
